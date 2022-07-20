@@ -1,6 +1,6 @@
 export class UpdateUserDto {
   name: string;
   email: string;
-  birthdate: Date;
+  birthdate: string;
   bio: string;
 }

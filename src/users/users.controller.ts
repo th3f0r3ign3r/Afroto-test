@@ -7,13 +7,13 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UsersService } from './users.service';
+import { CreateUserDto } from './dto/create-users.dto';
+import { UpdateUserDto } from './dto/update-users.dto';
 
-@Controller('user')
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+@Controller('users')
+export class UsersController {
+  constructor(private readonly userService: UsersService) {}
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
@@ -47,8 +47,14 @@ export class UserController {
           'Password must contain at least 1 number, capitalized letter, lowercase letter and special characters.',
         );
     }
-    if (!(createUserDto.birthdate instanceof Date))
-      errors.push('Birthdate must be a Date');
+    const dateRegex = new RegExp(/^\d{4}-\d{2}-\d{2}$/);
+    if (!dateRegex.test(createUserDto.birthdate))
+      errors.push('Birthdate should be in the format yyyy-mm-dd');
+    else {
+      const d = new Date(createUserDto.birthdate);
+      const dNum = d.getTime();
+      if (!dNum && dNum !== 0) errors.push('Invalid birthdate date');
+    }
     if (errors.length !== 0) return { statusCode: 417, errors };
     return this.userService.create(createUserDto);
   }
@@ -87,9 +93,14 @@ export class UserController {
       );
       if (emailExist !== 0) errors.push('Email already exists');
     }
-    if (!(updateUserDto.birthdate instanceof Date))
-      errors.push('Birthdate must be a Date');
-
+    const dateRegex = new RegExp(/^\d{4}-\d{2}-\d{2}$/);
+    if (!dateRegex.test(updateUserDto.birthdate))
+      errors.push('Birthdate should be in the format yyyy-mm-dd');
+    else {
+      const d = new Date(updateUserDto.birthdate);
+      const dNum = d.getTime();
+      if (!dNum && dNum !== 0) errors.push('Invalid birthdate date');
+    }
     if (errors.length != 0) return { statusCode: 417, errors };
     return await this.userService.update(id, updateUserDto);
   }

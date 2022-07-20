@@ -1,24 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from 'src/schemas/user.schema';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-users.dto';
+import { UpdateUserDto } from './dto/update-users.dto';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async create(createUserDto: CreateUserDto) {
-    return await new this.userModel({
-      name: createUserDto.name,
-      email: createUserDto.email,
-      password: await bcrypt.hash(createUserDto.password, 10),
-      birthdate: new Date(createUserDto.birthdate),
-      created_at: new Date(),
-      updated_at: new Date(),
-    }).save();
+    return {
+      statusCode: 200,
+      data: await new this.userModel({
+        name: createUserDto.name,
+        email: createUserDto.email,
+        password: await bcrypt.hash(createUserDto.password, 10),
+        birthdate: createUserDto.birthdate,
+        bio: '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }).save(),
+    };
+  }
+
+  async getUserByEmail(email: string) {
+    const user = await this.userModel.findOne({ email });
+    return user;
   }
 
   async findAll(): Promise<User[]> {
@@ -49,7 +58,7 @@ export class UserService {
         email: updateUserDto.email,
         birthdate: updateUserDto.birthdate,
         bio: updateUserDto.bio,
-        updated_at: new Date(),
+        updatedAt: new Date(),
       })
       .exec();
     return this.userModel.findOne({ _id: id });
