@@ -10,13 +10,13 @@ export class Post {
   @Prop({
     type: String,
     minlength: [3, 'Too short title'],
-    required: [true, 'Title required'],
+    required: [true, 'Title is required'],
   })
   title: string;
 
   @Prop({
     type: String,
-    required: [true, 'Title required'],
+    required: [true, 'Message content is required'],
   })
   message: string;
 

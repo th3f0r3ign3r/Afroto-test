@@ -6,22 +6,29 @@ import {
   Patch,
   Param,
   Delete,
+  Request,
+  UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-users.dto';
 import { UpdateUserDto } from './dto/update-users.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto, @Request() req) {
+    const user = await this.userService.findOne(req.user.id);
+    if (user.role !== 'admin') throw new UnauthorizedException();
     const errors = [];
     if (createUserDto.name.length < 3)
       errors.push('Name must be at least 3 characters');
     else {
-      const nameRegex = new RegExp(/^[a-zA-Z]+$/i);
+      const nameRegex = new RegExp(/^[a-zA-Z ]+$/i);
       if (!nameRegex.test(createUserDto.name))
         errors.push('Name must not contain number or special characters');
     }
@@ -59,18 +66,27 @@ export class UsersController {
     return this.userService.create(createUserDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.userService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req,
+  ) {
+    const user = await this.userService.findOne(req.user.id);
+    if (user.role !== 'admin') throw new UnauthorizedException();
     const errors = [];
     if (updateUserDto.name.length < 3)
       errors.push('Name must be at least 3 characters');
@@ -105,8 +121,11 @@ export class UsersController {
     return await this.userService.update(id, updateUserDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Request() req) {
+    const user = await this.userService.findOne(req.user.id);
+    if (user.role !== 'admin') throw new UnauthorizedException();
     return this.userService.remove(id);
   }
 }

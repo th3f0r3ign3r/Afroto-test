@@ -18,7 +18,6 @@ export class UsersService {
         email: createUserDto.email,
         password: await bcrypt.hash(createUserDto.password, 10),
         birthdate: createUserDto.birthdate,
-        bio: '',
         createdAt: new Date(),
         updatedAt: new Date(),
       }).save(),
@@ -34,8 +33,8 @@ export class UsersService {
     return await this.userModel.find();
   }
 
-  findOne(id: string) {
-    return this.userModel.findById(id);
+  async findOne(id: string) {
+    return await this.userModel.findById(id);
   }
 
   async checkIfExist(query: any) {
