@@ -14,13 +14,25 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-users.dto';
 import { UpdateUserDto } from './dto/update-users.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()
+  @ApiOperation({ summary: 'Create a user' })
+  @ApiResponse({ status: 201, description: 'Created' })
+  @ApiResponse({ status: 417, description: 'Expectation Failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async create(@Body() createUserDto: CreateUserDto, @Request() req) {
     const user = await this.userService.findOne(req.user.id);
     if (user.role !== 'admin') throw new UnauthorizedException();
@@ -68,18 +80,28 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   findAll() {
     return this.userService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
+  @ApiOperation({ summary: 'Get a user by id' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   findOne(@Param('id') id: string) {
     return this.userService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a user' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 417, description: 'Expectation Failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -123,6 +145,9 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a user' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async remove(@Param('id') id: string, @Request() req) {
     const user = await this.userService.findOne(req.user.id);
     if (user.role !== 'admin') throw new UnauthorizedException();

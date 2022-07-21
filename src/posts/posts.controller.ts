@@ -15,13 +15,26 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('posts')
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()
+  @ApiOperation({ summary: 'Create a post' })
+  @ApiResponse({ status: 201, description: 'Created' })
+  @ApiResponse({ status: 417, description: 'Expectation Failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   create(@Body() createPostDto: CreatePostDto, @Request() req) {
     const { id } = req.user;
     createPostDto.author = id;
@@ -36,6 +49,21 @@ export class PostsController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
+  @ApiQuery({
+    name: 'author',
+    type: String,
+    description: 'User id',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'creationDate',
+    type: String,
+    description: 'Creation date in yyyy-mm-dd format',
+    required: false,
+  })
+  @ApiOperation({ summary: 'Get all posts' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   findAll(@Query() query: FilterPostDto) {
     if (!(query?.author || query?.creationDate))
       return this.postsService.findAll();
@@ -44,12 +72,19 @@ export class PostsController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
+  @ApiOperation({ summary: 'Get post by id' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   findOne(@Param('id') id: string) {
     return this.postsService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
+  @ApiOperation({ summary: 'update a post' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 417, description: 'Expectation Failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async update(
     @Param('id') id: string,
     @Body() updatePostDto: UpdatePostDto,
@@ -72,6 +107,9 @@ export class PostsController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a post' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async remove(@Param('id') id: string, @Request() req) {
     const userId = req.user.id;
     const post = await this.postsService.findOne(id);

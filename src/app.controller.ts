@@ -3,7 +3,10 @@ import { AuthService } from './auth/auth.service';
 import { LocalAuthGuard } from './auth/local-auth.guard';
 import { CreateUserDto } from './users/dto/create-users.dto';
 import { UsersService } from './users/users.service';
+import { ApiOperation, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';
+import { LoginUserDto } from './posts/dto/login-user.dto';
 
+@ApiTags('default')
 @Controller()
 export class AppController {
   constructor(
@@ -12,6 +15,9 @@ export class AppController {
   ) {}
 
   @Post('register')
+  @ApiOperation({ summary: 'Register a user' })
+  @ApiResponse({ status: 200, description: 'Success' })
+  @ApiResponse({ status: 417, description: 'Expectation Failed' })
   async register(@Body() createUserDto: CreateUserDto) {
     const errors = [];
     if (createUserDto.name.length < 3)
@@ -57,6 +63,15 @@ export class AppController {
 
   @UseGuards(LocalAuthGuard)
   @Post('/login')
+  @ApiOperation({ summary: 'Log a user' })
+  @ApiResponse({
+    status: 201,
+    description: 'Created',
+  })
+  @ApiBody({
+    type: LoginUserDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async login(@Request() req) {
     const { access_token } = await this.authService.login(req.user);
     return { statusCode: true, access_token };
