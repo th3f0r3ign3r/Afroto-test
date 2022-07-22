@@ -13,6 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  // Trust user token payload
   async validate(payload: any) {
     return {
       id: payload.id,

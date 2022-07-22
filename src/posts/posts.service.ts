@@ -29,6 +29,7 @@ export class PostsService {
 
   async findAllFilter(query: FilterPostDto): Promise<Post[]> {
     if (query?.author && query?.creationDate)
+    // if the author and the creationDate is on the query
       return await this.postModel.aggregate([
         { $unwind: '$author' },
         {
@@ -50,6 +51,7 @@ export class PostsService {
         },
       ]);
     else
+    // if the author or the creationDate is on the query
       return await this.postModel.aggregate([
         { $unwind: '$author' },
         {
@@ -84,7 +86,6 @@ export class PostsService {
         updatedAt: new Date(),
       })
       .exec();
-    console.log('first');
     return this.postModel.findOne({ _id: id });
   }
 

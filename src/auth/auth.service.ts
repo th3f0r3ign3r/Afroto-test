@@ -10,6 +10,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  // Verify the validity of the user credentials
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usersService.getUserByEmail(email);
     if (user !== null && (await bcrypt.compare(password, user.password))) {
@@ -19,6 +20,7 @@ export class AuthService {
     return null;
   }
 
+  // Logged user token generate
   async login(user: any) {
     const payload = {
       id: user._doc._id.toString(),

@@ -37,13 +37,13 @@ export class PostsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   create(@Body() createPostDto: CreatePostDto, @Request() req) {
     const { id } = req.user;
-    createPostDto.author = id;
+    createPostDto.author = id; // set the post author with the id get from token
     const errors = [];
     if (createPostDto.title.length < 5)
       errors.push('Title is required and must be at least 5 characters');
     if (createPostDto.message.length < 15)
       errors.push('Message is required and must be at least 15 characters');
-    if (errors.length !== 0) return { statusCode: 417, errors };
+    if (errors.length !== 0) return { statusCode: 417, errors }; // return errors if errors detected
     return this.postsService.create(createPostDto);
   }
 
@@ -66,8 +66,8 @@ export class PostsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findAll(@Query() query: FilterPostDto) {
     if (!(query?.author || query?.creationDate))
-      return this.postsService.findAll();
-    else return this.postsService.findAllFilter(query);
+      return this.postsService.findAll(); // step if no filtering option is set
+    else return this.postsService.findAllFilter(query); // step if filtering option is set
   }
 
   @UseGuards(JwtAuthGuard)
@@ -93,14 +93,15 @@ export class PostsController {
     const errors = [];
     const userId = req.user.id;
     const post = await this.postsService.findOne(id);
+    // Only the author of the post may be able to update this post
     if (post.author[0].toString() !== userId)
-      return { statusCode: 401, message: "This post doesn't belong to you" };
+    return { statusCode: 401, message: "This post doesn't belong to you" };
     else {
       if (updatePostDto.title.length < 5)
         errors.push('Title is required and must be at least 5 characters');
       if (updatePostDto.message.length < 15)
         errors.push('Message is required and must be at least 15 characters');
-      if (errors.length !== 0) return { statusCode: 417, errors };
+      if (errors.length !== 0) return { statusCode: 417, errors }; // return errors if errors detected
       return this.postsService.update(id, updatePostDto);
     }
   }
@@ -113,6 +114,7 @@ export class PostsController {
   async remove(@Param('id') id: string, @Request() req) {
     const userId = req.user.id;
     const post = await this.postsService.findOne(id);
+    // Only the author of the post may be able to delete this post
     if (post.author[0].toString() !== userId)
       return { statusCode: 401, message: "This post doesn't belong to you" };
     else {
